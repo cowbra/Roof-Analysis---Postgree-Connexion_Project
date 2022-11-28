@@ -50,7 +50,7 @@
     # Read config.ini file
     config_obj = configparser.ConfigParser()
     try:
-        config_obj.read("configfile.ini")
+        config_obj.read("ressources/configfile.ini")
    
     except OSError as err:
         print("OS error: {0}".format(err))
@@ -66,39 +66,42 @@
 3. Now that we have the prerequisites to retrieve our information, let's create the function that allows us to do this
     ``` python
     def read_database():
-    """This function aims to save in a list all the links of the images of the buildings,
-     type of roof and their ID"""
+        """This function aims to save in a list all the links of the images of the buildings,
+           type of roof and their ID
+        """
+    
+        # To measure program execution time
+        timer_start = time.time()
+        buildings = []
+    
+        try:
+            # Creating the connection to Postgre Database
+            connexion = psycopg2.connect("host=%s dbname=%s user=%s password=%s" % (HOST, DATABASE, USER, PASSWORD))
+            # Creating the SQL Query Object
+            cursor = connexion.cursor()
+            # We retrieve 400 verified buildings to create our dataset
+            query = "SELECT id,materiau_result,lien_api FROM batiments WHERE materiau_correct='TRUE' LIMIT 400;"
+            # Executing the query
+            cursor.execute(query)
+    
+            # Iterating through the query results
+            for row in cursor.fetchall():
+                # We add to our list 'buildings' the tuple (ID, materiau_result, lien_api)
+                buildings.append((row[0], row[1],row[2]))
+    
+        except (Exception, psycopg2.Error) as error:
+            print("An error occurred while connecting to the Postgre database", error)
+    
+        finally:
+            # closing database connection.
+            if connexion:
+                cursor.close()
+                connexion.close()
+                print("PostgreSQL connection closed")
+                execution_time = round(time.time() - timer_start, 4)
+                print(f'"batiments" table reading time :  {execution_time} ')
+        return buildings
 
-    # To measure program execution time
-    timer_start = time.time()
-    buildings = []
-   
-    try:
-        # Creating the connection to Postgre Database
-        connexion = psycopg2.connect("host=%s dbname=%s user=%s password=%s" % (HOST, DATABASE, USER, PASSWORD))
-        # Creating the SQL Query Object
-        cursor = connexion.cursor()
-        # We retrieve 400 verified buildings to create our dataset
-        query = "SELECT id,materiau_result,lien_api FROM batiments WHERE materiau_correct='TRUE' LIMIT 400;"
-        # Executing the query
-        cursor.execute(query)
-
-        # Iterating through the query results
-        for row in cursor.fetchall():
-            # We add to our list 'buildings' the tuple (ID, materiau_result, lien_api)
-            buildings.append((row[0], row[1],row[2]))
-
-    except (Exception, psycopg2.Error) as error:
-        print("An error occurred while connecting to the Postgre database", error)
-
-    finally:
-        # closing database connection.
-        if connexion:
-            cursor.close()
-            connexion.close()
-            print("PostgreSQL connection closed")
-            execution_time = round(time.time() - timer_start, 4)
-            print(f'"batiments" table reading time :  {execution_time} ')
-    return buildings
     ```
-## Now that you have unlocked 🔓 your skills, it's up to you 👊!
+## Now that you have unlocked your skills 🔓, it's up to you 👊!
+   > ### Complete Python Script :  [main.py](main.py)
