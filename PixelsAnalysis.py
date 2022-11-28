@@ -1,3 +1,5 @@
+#Ancienne version, (il ne faut pas devoiler tout ses atoux pour gagner la competition)
+
 import psycopg2
 import configparser
 import time

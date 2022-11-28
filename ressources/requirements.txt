@@ -1,5 +1,5 @@
 psycopg2
 configparser
-PIL
+Pillow
 numpy
 requests
