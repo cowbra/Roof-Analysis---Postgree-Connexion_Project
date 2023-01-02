@@ -59,6 +59,12 @@ def main(choix_repartition=0):
     test_dataset = datas[1]
 
 
+    # Training :
+    moyennes = [pa.average_pixels(avg) for avg in learning_dataset]
+
+    #Validation :
+    pa.score(test_dataset,moyennes)
+
 if __name__ == "__main__":
     # Read config.ini file
     config_obj = configparser.ConfigParser()
@@ -74,8 +80,10 @@ if __name__ == "__main__":
 
         buildings = read_database()
         print("NB : ", len(buildings))
-        main(1)
+
 
     except OSError as err:
         print("OS error: {0}".format(err))
         print("Unable to find file 'configfile.ini' !")
+
+    main(1)

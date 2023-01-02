@@ -9,8 +9,7 @@ import requests
 from PIL.Image import *
 from numpy import argmin
 import random
-import copy
-
+from sklearn.metrics import classification_report
 
 def split(batiments, choix_repartition):
     toit_tuiles = []
@@ -48,10 +47,7 @@ def split(batiments, choix_repartition):
         learning_set = learn2
 
 
-    test_set = [toit_beton[len(toit_beton) // 2:] + toit_tuiles[len(toit_tuiles) // 2:] +
-                toit_ardoises[len(toit_ardoises) // 2:] + toit_zincAluminium[len(toit_zincAluminium) // 2:]]
-
-    print("taille beton :", len(learning_set[0]))
+    test_set = toit_beton[len(toit_beton) // 2:] + toit_tuiles[len(toit_tuiles) // 2:] + toit_ardoises[len(toit_ardoises) // 2:] + toit_zincAluminium[len(toit_zincAluminium) // 2:]
     return learning_set, test_set
 
 
@@ -73,28 +69,29 @@ def average_pixels(toits):
             a = time.strftime('%H:%M:%S', time.gmtime(time_left))
             print('Temps restant estimé :', a)
             start = time.time()
-        response = requests.get(elt[1])
+        response = requests.get(elt[2])
 
         image = open(BytesIO(response.content))
-        (rouge, vert, bleu) = image.getpixel((128, 128))
+        [rouge, vert, bleu] = [0,0,0]
+        #On fait la moyenne pour chaque pixel du bloc central de 16x16
+        for x in range(16):
+            for y in range(16):
+                (rouge, vert, bleu) = (x + y for x, y in zip((rouge, vert, bleu), image.getpixel((120+x, 120+y))))
         image.close()
 
-        rouges.append(rouge)
-        verts.append(vert)
-        bleus.append(bleu)
-    print("lecture des images terminee")
+        rouges.append(round(rouge/16,5))
+        verts.append(round(vert/16,5))
+        bleus.append(round(bleu/16,5))
+    print("lecture des images terminee pour le materiau (4 en tout)")
     moy_rouge = sum(rouges) / len(rouges)
     moy_vert = sum(verts) / len(verts)
     moy_bleu = sum(bleus) / len(bleus)
     result = [moy_rouge, moy_vert, moy_bleu]
-
     return result
 
 
-def Type_de_toit_predit(image_a_predire):
+def Type_de_toit_predit(image_a_predire,avg):
     response = requests.get(image_a_predire)
-
-    avg = analysis_pixels(read_database())
 
     avg_pixels_tuiles = avg[0]
     avg_pixels_ardoises = avg[1]
@@ -124,5 +121,20 @@ def Type_de_toit_predit(image_a_predire):
     result_name = ["Tuiles", "Ardoises", "Beton", "Zinc Aluminium"]
     return result_name[argmin(result_indice)]
 
-# Test_image = "https://wxs.ign.fr/ortho/geoportail/r/wms?SERVICE=WMS&VERSION=1.3.0&LAYERS=HR.ORTHOIMAGERY.ORTHOPHOTOS&EXCEPTIONS=text/xml&FORMAT=image/jpeg&SERVICE=WMS&VERSION=1.3.0&REQUEST=GetMap&STYLES=&CRS=EPSG:4326&BBOX=43.68581529756786,4.129607156785642,43.686043447002405,4.129912678428446&WIDTH=256&HEIGHT=256"
-# print(Type_de_toit_predit(Test_image))
+
+def score(test_dataset,avg):
+    classes = ["Tuiles", "Ardoises", "Beton", "Zinc Aluminium"]
+    im_prediction = [0,0,0,0]
+    im_true = [0,0,0,0]
+    print("Validation en cours")
+    for image in test_dataset:
+        # Image test = (ID,type,lien)
+        identified_as = Type_de_toit_predit(image[2],avg)
+        # On modifie la matrice de confusion en fonction du resultat
+        # On classe de cette maniere : tuiles,ardoises,beton,zinc
+        im_true[classes.index(image[1])] += 1
+        im_prediction[classes.index(identified_as)] += 1
+        print(identified_as)
+    print("prediction : ",im_prediction)
+    print("réalité : ", im_true)
+    #print(classification_report(im_true, im_prediction))
