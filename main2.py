@@ -4,6 +4,7 @@ import psycopg2
 import configparser
 # This library allows us to have information about the execution time of our code
 import time
+import PixelsAnalysis as pa
 
 
 def read_database():
@@ -44,22 +45,37 @@ def read_database():
     return buildings
 
 
+def main(choix_repartition=0):
+    """
+    :param choix_repartition: Si la valeur est 0 (par defaut), on decoupe les donnes en 50/50
+                            si valeur est 1 : learning_dataset sera normalisé selon le type de materiau
+                            le moins present
+    :return:
+    """
+    # On split les datas selon le materiau de chaque toit
+    datas = pa.split(buildings, choix_repartition)
+    # creation echantillon apprentissage et echantillon de test
+    learning_dataset = datas[0]
+    test_dataset = datas[1]
+
+
 if __name__ == "__main__":
     # Read config.ini file
     config_obj = configparser.ConfigParser()
     try:
         config_obj.read("ressources/configfile.ini")
 
+        dbparam = config_obj["postgresql"]
+        # Postgre PARAMETERS :
+        DATABASE = dbparam["database"]
+        HOST = dbparam["host"]
+        USER = dbparam["user"]
+        PASSWORD = dbparam["password"]
+
+        buildings = read_database()
+        print("NB : ", len(buildings))
+        main(1)
+
     except OSError as err:
         print("OS error: {0}".format(err))
         print("Unable to find file 'configfile.ini' !")
-    dbparam = config_obj["postgresql"]
-
-    # Postgre PARAMETERS :
-    DATABASE = dbparam["database"]
-    HOST = dbparam["host"]
-    USER = dbparam["user"]
-    PASSWORD = dbparam["password"]
-
-    buildings = read_database()
-
