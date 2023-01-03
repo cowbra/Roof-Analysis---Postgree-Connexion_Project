@@ -66,7 +66,10 @@ def main(choix_repartition=0):
     moyennes = [pa.average_pixels(avg) for avg in learning_dataset]
 
     #Validation :
-    return pa.score(test_dataset,moyennes)
+    score =pa.score(test_dataset,moyennes)
+    sns.heatmap(score[1], square=True, annot=True)
+    plt.show()
+    return score
 
 
 if __name__ == "__main__":
@@ -134,8 +137,6 @@ if __name__ == "__main__":
         sns.heatmap(confusion_matrix_with_normalization, square=True, annot=True)
         plt.show()
 
-    else :
-        sns.heatmap(main(0)[1], square=True, annot=True)
-        plt.show()
-        sns.heatmap(main(0)[1], square=True, annot=True)
-        plt.show()
+    else:
+        main(1)
+

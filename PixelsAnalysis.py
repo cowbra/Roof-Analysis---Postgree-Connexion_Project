@@ -71,21 +71,19 @@ def average_pixels(toits):
             start = time.time()
         response = requests.get(elt[2])
 
-        try :
-            image = open(BytesIO(response.content))
-            (rouge, vert, bleu) = (0,0,0)
-            #On fait la moyenne pour chaque pixel du bloc central de 16x16
-            for x in range(16):
-                for y in range(16):
-                    (rouge, vert, bleu) = (x + y for x, y in zip((rouge, vert, bleu), image.getpixel((120+x, 120+y))))
-            image.close()
 
-            rouges.append(round(rouge/16,5))
-            verts.append(round(vert/16,5))
-            bleus.append(round(bleu/16,5))
-        except :
-            print("Erreur ouverture image : ")
-            print(elt)
+        image = open(BytesIO(response.content))
+        (rouge, vert, bleu) = (0,0,0)
+        #On fait la moyenne pour chaque pixel du bloc central de 16x16
+        for x in range(16):
+            for y in range(16):
+                (rouge, vert, bleu) = (x + y for x, y in zip((rouge, vert, bleu), image.getpixel((120+x, 120+y))))
+        image.close()
+
+        rouges.append(round(rouge/16,5))
+        verts.append(round(vert/16,5))
+        bleus.append(round(bleu/16,5))
+
     print("lecture des images terminee pour le materiau (4 en tout)")
     moy_rouge = sum(rouges) / len(rouges)
     moy_vert = sum(verts) / len(verts)
