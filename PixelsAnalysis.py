@@ -1,6 +1,4 @@
-# Ancienne version, (il ne faut pas devoiler tout ses atoux pour gagner la competition)
 
-import configparser
 import time
 from datetime import timedelta
 from io import BytesIO
@@ -9,7 +7,9 @@ import requests
 from PIL.Image import *
 from numpy import argmin
 import random
-from sklearn.metrics import classification_report
+import seaborn as sns
+
+
 
 def split(batiments, choix_repartition):
     toit_tuiles = []
@@ -71,17 +71,21 @@ def average_pixels(toits):
             start = time.time()
         response = requests.get(elt[2])
 
-        image = open(BytesIO(response.content))
-        [rouge, vert, bleu] = [0,0,0]
-        #On fait la moyenne pour chaque pixel du bloc central de 16x16
-        for x in range(16):
-            for y in range(16):
-                (rouge, vert, bleu) = (x + y for x, y in zip((rouge, vert, bleu), image.getpixel((120+x, 120+y))))
-        image.close()
+        try :
+            image = open(BytesIO(response.content))
+            (rouge, vert, bleu) = (0,0,0)
+            #On fait la moyenne pour chaque pixel du bloc central de 16x16
+            for x in range(16):
+                for y in range(16):
+                    (rouge, vert, bleu) = (x + y for x, y in zip((rouge, vert, bleu), image.getpixel((120+x, 120+y))))
+            image.close()
 
-        rouges.append(round(rouge/16,5))
-        verts.append(round(vert/16,5))
-        bleus.append(round(bleu/16,5))
+            rouges.append(round(rouge/16,5))
+            verts.append(round(vert/16,5))
+            bleus.append(round(bleu/16,5))
+        except :
+            print("Erreur ouverture image : ")
+            print(elt)
     print("lecture des images terminee pour le materiau (4 en tout)")
     moy_rouge = sum(rouges) / len(rouges)
     moy_vert = sum(verts) / len(verts)
@@ -99,8 +103,17 @@ def Type_de_toit_predit(image_a_predire,avg):
     avg_pixels_zincAlu = avg[3]
 
     image = open(BytesIO(response.content))
-    [rouge, vert, bleu] = image.getpixel((128, 128))
+
+    [rouge, vert, bleu] = [0, 0, 0]
+    # On fait la moyenne pour chaque pixel du bloc central de 16x16
+    for x in range(16):
+        for y in range(16):
+            [rouge, vert, bleu] = (x + y for x, y in zip((rouge, vert, bleu), image.getpixel((120 + x, 120 + y))))
     image.close()
+
+    [rouge, vert, bleu] = [round(rouge/16,5), round(vert/16,5), round(bleu/16,5)]
+
+
     Is_tuiles = [abs(rouge - avg_pixels_tuiles[0]),
                  abs(vert - avg_pixels_tuiles[1]),
                  abs(bleu - avg_pixels_tuiles[2])]
@@ -117,24 +130,30 @@ def Type_de_toit_predit(image_a_predire,avg):
                abs(vert - avg_pixels_zincAlu[1]),
                abs(bleu - avg_pixels_zincAlu[2])]
 
-    result_indice = [sum(Is_tuiles), sum(Is_Ardoises), sum(Is_Beton), sum(Is_Zinc)]
-    result_name = ["Tuiles", "Ardoises", "Beton", "Zinc Aluminium"]
+    result_indice = [sum(Is_Beton), sum(Is_tuiles), sum(Is_Ardoises), sum(Is_Zinc)]
+    result_name = ["Beton", "Tuiles", "Ardoises", "Zinc Aluminium"]
+
     return result_name[argmin(result_indice)]
 
 
 def score(test_dataset,avg):
-    classes = ["Tuiles", "Ardoises", "Beton", "Zinc Aluminium"]
+    classes = ["Beton","Tuiles", "Ardoises", "Zinc Aluminium"]
     im_prediction = [0,0,0,0]
     im_true = [0,0,0,0]
+    conf_matrix = [[0,0,0,0],
+                  [0,0,0,0],
+                  [0,0,0,0],
+                  [0,0,0,0]]
     print("Validation en cours")
     for image in test_dataset:
         # Image test = (ID,type,lien)
         identified_as = Type_de_toit_predit(image[2],avg)
         # On modifie la matrice de confusion en fonction du resultat
-        # On classe de cette maniere : tuiles,ardoises,beton,zinc
-        im_true[classes.index(image[1])] += 1
-        im_prediction[classes.index(identified_as)] += 1
-        print(identified_as)
-    print("prediction : ",im_prediction)
-    print("réalité : ", im_true)
-    #print(classification_report(im_true, im_prediction))
+        # On classe de cette maniere : beton,tuiles,ardoises,zinc
+        x,y = classes.index(image[1]),classes.index(identified_as)
+        conf_matrix[x][y] += 1
+
+    print(conf_matrix)
+    #sns.heatmap(conf_matrix, square=True, annot=True, fmt='d')
+    #plt.show()
+    return round((conf_matrix[0][0] + conf_matrix[1][1] + conf_matrix[2][2] + conf_matrix[3][3]) / len(test_dataset) * 100 , 4), conf_matrix

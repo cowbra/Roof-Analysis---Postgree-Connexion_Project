@@ -5,10 +5,11 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="9dd4f8a6-20fc-4f16-8f64-5967910c800b" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/test.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/pixel_analyse.ipynb" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/PixelsAnalysis.py" beforeDir="false" afterPath="$PROJECT_DIR$/PixelsAnalysis.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main2.py" beforeDir="false" afterPath="$PROJECT_DIR$/main2.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/test.py" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -19,6 +20,7 @@
     <option name="RECENT_TEMPLATES">
       <list>
         <option value="Python Script" />
+        <option value="Jupyter Notebook" />
       </list>
     </option>
   </component>
@@ -99,6 +101,8 @@
       <workItem from="1672680985033" duration="4419000" />
       <workItem from="1672694961228" duration="5895000" />
       <workItem from="1672700991027" duration="1581000" />
+      <workItem from="1672735359148" duration="6591000" />
+      <workItem from="1672748211368" duration="12411000" />
     </task>
     <servers />
   </component>
