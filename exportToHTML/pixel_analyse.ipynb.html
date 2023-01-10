@@ -1,0 +1,148 @@
+<html>
+<head>
+<title>pixel_analyse.ipynb</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #808080;}
+.s1 { color: #a9b7c6;}
+.s2 { color: #cc7832;}
+.s3 { color: #6a8759;}
+.s4 { color: #6897bb;}
+</style>
+</head>
+<body bgcolor="#2b2b2b">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+pixel_analyse.ipynb</font>
+</center></td></tr></table>
+<pre><span class="s0">#%% md 
+</span><span class="s1"># Extraction des données 
+</span><span class="s0">#%% md 
+</span><span class="s1">## 1- Importation des modules de base 
+</span><span class="s0">#%% 
+</span><span class="s2">import </span><span class="s1">pandas </span><span class="s2">as </span><span class="s1">pd</span>
+<span class="s2">import </span><span class="s1">numpy </span><span class="s2">as </span><span class="s1">np</span>
+
+<span class="s2">from </span><span class="s1">datetime </span><span class="s2">import </span><span class="s1">timedelta</span>
+<span class="s2">from </span><span class="s1">PIL.Image </span><span class="s2">import </span><span class="s1">*</span>
+<span class="s2">import </span><span class="s1">time</span>
+<span class="s2">import </span><span class="s1">seaborn </span><span class="s2">as </span><span class="s1">sns</span>
+<span class="s2">import </span><span class="s1">matplotlib.pyplot </span><span class="s2">as </span><span class="s1">plt</span>
+<span class="s2">import </span><span class="s1">csv</span>
+<span class="s0">#%% md 
+</span><span class="s1">## 2- Extraction de jeu de données 
+</span><span class="s0">#%% 
+</span><span class="s1">data = pd.read_csv(</span><span class="s3">&quot;./ressources/images/batiments.csv&quot;</span><span class="s2">,</span><span class="s1">delimiter = </span><span class="s3">';'</span><span class="s2">, </span><span class="s1">header=</span><span class="s2">None</span><span class="s1">)</span>
+<span class="s1">data.columns = [</span><span class="s3">&quot;ID&quot;</span><span class="s2">,</span><span class="s3">&quot;Label&quot;</span><span class="s1">]</span>
+<span class="s1">data.info()</span>
+<span class="s0">#%% md 
+</span><span class="s1"># Opération sur les données 
+</span><span class="s0">#%% md 
+</span><span class="s1">## 1- Répartition des données 
+</span><span class="s0">#%% 
+</span><span class="s1">sns.countplot(x=</span><span class="s3">'Label'</span><span class="s2">,</span><span class="s1">data=data</span><span class="s2">,</span><span class="s1">label=</span><span class="s3">&quot;Nombre&quot;</span><span class="s1">)</span>
+<span class="s0">#%% 
+</span>
+<span class="s0">#%% md 
+</span><span class="s1">## 2- Ajout de colonnes au dataset avec la moyenne RGB du chunk central de 16*16 pixels 
+</span><span class="s0">#%% 
+</span><span class="s2">def </span><span class="s1">read_pixel_chunk():</span>
+    <span class="s1">r = []</span>
+    <span class="s1">v = []</span>
+    <span class="s1">b = []</span>
+    <span class="s2">for </span><span class="s1">image </span><span class="s2">in </span><span class="s1">data[</span><span class="s3">&quot;ID&quot;</span><span class="s1">]:</span>
+        <span class="s1">im = open(</span><span class="s3">&quot;./ressources/images/&quot;</span><span class="s1">+str(image)+</span><span class="s3">&quot;.jpg&quot;</span><span class="s1">)</span>
+        <span class="s1">(rouge</span><span class="s2">, </span><span class="s1">vert</span><span class="s2">, </span><span class="s1">bleu) = (</span><span class="s4">0</span><span class="s2">,</span><span class="s4">0</span><span class="s2">,</span><span class="s4">0</span><span class="s1">)</span>
+        <span class="s0">#On fait la moyenne pour chaque pixel du bloc central de 16x16</span>
+        <span class="s2">for </span><span class="s1">x </span><span class="s2">in </span><span class="s1">range(</span><span class="s4">16</span><span class="s1">):</span>
+            <span class="s2">for </span><span class="s1">y </span><span class="s2">in </span><span class="s1">range(</span><span class="s4">16</span><span class="s1">):</span>
+                <span class="s1">(rouge</span><span class="s2">, </span><span class="s1">vert</span><span class="s2">, </span><span class="s1">bleu) = (x + y </span><span class="s2">for </span><span class="s1">x</span><span class="s2">, </span><span class="s1">y </span><span class="s2">in </span><span class="s1">zip((rouge</span><span class="s2">, </span><span class="s1">vert</span><span class="s2">, </span><span class="s1">bleu)</span><span class="s2">, </span><span class="s1">im.getpixel((</span><span class="s4">120</span><span class="s1">+x</span><span class="s2">, </span><span class="s4">120</span><span class="s1">+y))))</span>
+        <span class="s1">im.close()</span>
+        <span class="s1">r.append(rouge)</span>
+        <span class="s1">v.append(vert)</span>
+        <span class="s1">b.append(bleu)</span>
+    <span class="s2">return </span><span class="s1">r</span><span class="s2">,</span><span class="s1">v</span><span class="s2">,</span><span class="s1">b</span>
+<span class="s0">#%% md 
+</span><span class="s1">On analyse la moyenne RGB du bloc central de 16 par 16 pixels. 
+Il faut maintenant ajouter ces colonnes au dataset : 
+</span><span class="s0">#%% 
+</span><span class="s1">results = read_pixel_chunk()</span>
+<span class="s1">data[</span><span class="s3">&quot;rouge&quot;</span><span class="s1">] = results[</span><span class="s4">0</span><span class="s1">]</span>
+<span class="s1">data[</span><span class="s3">&quot;vert&quot;</span><span class="s1">] = results[</span><span class="s4">1</span><span class="s1">]</span>
+<span class="s1">data[</span><span class="s3">&quot;bleu&quot;</span><span class="s1">] = results[</span><span class="s4">2</span><span class="s1">]</span>
+<span class="s1">data.info()</span>
+<span class="s0">#%% md 
+</span><span class="s1">## 3- Création des dataset 
+</span><span class="s0">#%% md 
+</span><span class="s1">On va sélectionner aléatoirement 75% d'individus de chaque matériau pour créer le jeu d'apprentissage et les 25% restants serviront à tester notre modèle. 
+</span><span class="s0">#%% 
+</span><span class="s1">data_tuiles = data[data[</span><span class="s3">'Label'</span><span class="s1">]== </span><span class="s3">'Tuiles' </span><span class="s1">]</span>
+<span class="s1">data_zinc = data[data[</span><span class="s3">'Label'</span><span class="s1">]== </span><span class="s3">'Zinc Aluminium' </span><span class="s1">]</span>
+<span class="s1">data_ardoises = data[data[</span><span class="s3">'Label'</span><span class="s1">]== </span><span class="s3">'Ardoises' </span><span class="s1">]</span>
+<span class="s1">data_beton = data[data[</span><span class="s3">'Label'</span><span class="s1">]== </span><span class="s3">'Beton' </span><span class="s1">]</span>
+<span class="s0">#%% 
+</span><span class="s1">learning_df = pd.concat([data_tuiles.sample(frac=</span><span class="s4">0.75</span><span class="s1">)</span><span class="s2">,</span><span class="s1">data_zinc.sample(frac=</span><span class="s4">0.75</span><span class="s1">)</span><span class="s2">,</span><span class="s1">data_ardoises.sample(frac=</span><span class="s4">0.75</span><span class="s1">)</span><span class="s2">,</span><span class="s1">data_beton.sample(frac=</span><span class="s4">0.75</span><span class="s1">)] </span><span class="s2">, </span><span class="s1">ignore_index=</span><span class="s2">True</span><span class="s1">)</span>
+<span class="s1">test_df = data.drop(learning_df.index)</span>
+<span class="s0">#%% 
+</span><span class="s1">learning_df.info()</span>
+<span class="s0">#%% md 
+</span><span class="s1"># Algorithme 
+</span><span class="s0">#%% md 
+</span><span class="s1">## 1- Analyse des composantes RGB de chaque matériau de learning dataset 
+</span><span class="s0">#%% md 
+</span><span class="s1">On fait la moyenne RGB de chaque type de matériau pour avoir une estimation des compostantes de ce dernier. 
+</span><span class="s0">#%% 
+</span><span class="s2">def </span><span class="s1">avg_materiau():</span>
+    <span class="s1">learning_tuiles = learning_df[learning_df[</span><span class="s3">'Label'</span><span class="s1">]== </span><span class="s3">'Tuiles' </span><span class="s1">]</span>
+    <span class="s1">learning_zinc = learning_df[learning_df[</span><span class="s3">'Label'</span><span class="s1">]== </span><span class="s3">'Zinc Aluminium' </span><span class="s1">]</span>
+    <span class="s1">learning_ardoises = learning_df[learning_df[</span><span class="s3">'Label'</span><span class="s1">]== </span><span class="s3">'Ardoises' </span><span class="s1">]</span>
+    <span class="s1">learning_beton = learning_df[learning_df[</span><span class="s3">'Label'</span><span class="s1">]== </span><span class="s3">'Beton' </span><span class="s1">]</span>
+
+
+    <span class="s1">avg_tuile = [learning_tuiles[</span><span class="s3">&quot;rouge&quot;</span><span class="s1">].mean()</span><span class="s2">,</span><span class="s1">learning_tuiles[</span><span class="s3">&quot;vert&quot;</span><span class="s1">].mean()</span><span class="s2">,</span><span class="s1">learning_tuiles[</span><span class="s3">&quot;bleu&quot;</span><span class="s1">].mean()]</span>
+    <span class="s1">avg_zinc = [learning_zinc[</span><span class="s3">&quot;rouge&quot;</span><span class="s1">].mean()</span><span class="s2">,</span><span class="s1">learning_zinc[</span><span class="s3">&quot;vert&quot;</span><span class="s1">].mean()</span><span class="s2">,</span><span class="s1">learning_zinc[</span><span class="s3">&quot;bleu&quot;</span><span class="s1">].mean()]</span>
+    <span class="s1">avg_ardoise = [learning_ardoises[</span><span class="s3">&quot;rouge&quot;</span><span class="s1">].mean()</span><span class="s2">,</span><span class="s1">learning_ardoises[</span><span class="s3">&quot;vert&quot;</span><span class="s1">].mean()</span><span class="s2">,</span><span class="s1">learning_ardoises[</span><span class="s3">&quot;bleu&quot;</span><span class="s1">].mean()]</span>
+    <span class="s1">avg_beton = [learning_beton[</span><span class="s3">&quot;rouge&quot;</span><span class="s1">].mean()</span><span class="s2">,</span><span class="s1">learning_beton[</span><span class="s3">&quot;vert&quot;</span><span class="s1">].mean()</span><span class="s2">,</span><span class="s1">learning_beton[</span><span class="s3">&quot;bleu&quot;</span><span class="s1">].mean()]</span>
+    <span class="s2">return </span><span class="s1">avg_tuile</span><span class="s2">,</span><span class="s1">avg_zinc</span><span class="s2">,</span><span class="s1">avg_ardoise</span><span class="s2">,</span><span class="s1">avg_beton</span>
+<span class="s0">#%% md 
+</span><span class="s1">## 2- Prediction du type de toit d'un bâtiment 
+</span><span class="s0">#%% 
+</span><span class="s2">def </span><span class="s1">Type_de_toit_predit(image_a_predire</span><span class="s2">,</span><span class="s1">avg):</span>
+    <span class="s1">avg_pixels_tuiles = avg[</span><span class="s4">0</span><span class="s1">]</span>
+    <span class="s1">avg_pixels_ardoises = avg[</span><span class="s4">2</span><span class="s1">]</span>
+    <span class="s1">avg_pixels_beton = avg[</span><span class="s4">3</span><span class="s1">]</span>
+    <span class="s1">avg_pixels_zincAlu = avg[</span><span class="s4">1</span><span class="s1">]</span>
+
+    <span class="s1">image = open(image_a_predire)</span>
+    <span class="s1">[rouge</span><span class="s2">, </span><span class="s1">vert</span><span class="s2">, </span><span class="s1">bleu] = [</span><span class="s4">0</span><span class="s2">, </span><span class="s4">0</span><span class="s2">, </span><span class="s4">0</span><span class="s1">]</span>
+    <span class="s0"># On fait la moyenne pour chaque pixel du bloc central de 16x16</span>
+    <span class="s2">for </span><span class="s1">x </span><span class="s2">in </span><span class="s1">range(</span><span class="s4">16</span><span class="s1">):</span>
+        <span class="s2">for </span><span class="s1">y </span><span class="s2">in </span><span class="s1">range(</span><span class="s4">16</span><span class="s1">):</span>
+            <span class="s1">[rouge</span><span class="s2">, </span><span class="s1">vert</span><span class="s2">, </span><span class="s1">bleu] = (x + y </span><span class="s2">for </span><span class="s1">x</span><span class="s2">, </span><span class="s1">y </span><span class="s2">in </span><span class="s1">zip((rouge</span><span class="s2">, </span><span class="s1">vert</span><span class="s2">, </span><span class="s1">bleu)</span><span class="s2">, </span><span class="s1">image.getpixel((</span><span class="s4">120 </span><span class="s1">+ x</span><span class="s2">, </span><span class="s4">120 </span><span class="s1">+ y))))</span>
+    <span class="s1">image.close()</span>
+    <span class="s1">[rouge</span><span class="s2">, </span><span class="s1">vert</span><span class="s2">, </span><span class="s1">bleu] = [round(rouge/</span><span class="s4">16</span><span class="s2">,</span><span class="s4">5</span><span class="s1">)</span><span class="s2">, </span><span class="s1">round(vert/</span><span class="s4">16</span><span class="s2">,</span><span class="s4">5</span><span class="s1">)</span><span class="s2">, </span><span class="s1">round(bleu/</span><span class="s4">16</span><span class="s2">,</span><span class="s4">5</span><span class="s1">)]</span>
+
+    <span class="s1">Is_tuiles = [abs(rouge - avg_pixels_tuiles[</span><span class="s4">0</span><span class="s1">])</span><span class="s2">,</span>
+                 <span class="s1">abs(vert - avg_pixels_tuiles[</span><span class="s4">1</span><span class="s1">])</span><span class="s2">,</span>
+                 <span class="s1">abs(bleu - avg_pixels_tuiles[</span><span class="s4">2</span><span class="s1">])]</span>
+    <span class="s1">Is_Ardoises = [abs(rouge - avg_pixels_ardoises[</span><span class="s4">0</span><span class="s1">])</span><span class="s2">,</span>
+                   <span class="s1">abs(vert - avg_pixels_ardoises[</span><span class="s4">1</span><span class="s1">])</span><span class="s2">,</span>
+                   <span class="s1">abs(bleu - avg_pixels_ardoises[</span><span class="s4">2</span><span class="s1">])]</span>
+    <span class="s1">Is_Beton = [abs(rouge - avg_pixels_beton[</span><span class="s4">0</span><span class="s1">])</span><span class="s2">,</span>
+                <span class="s1">abs(vert - avg_pixels_beton[</span><span class="s4">1</span><span class="s1">])</span><span class="s2">,</span>
+                <span class="s1">abs(bleu - avg_pixels_beton[</span><span class="s4">2</span><span class="s1">])]</span>
+    <span class="s1">Is_Zinc = [abs(rouge - avg_pixels_zincAlu[</span><span class="s4">0</span><span class="s1">])</span><span class="s2">,</span>
+               <span class="s1">abs(vert - avg_pixels_zincAlu[</span><span class="s4">1</span><span class="s1">])</span><span class="s2">,</span>
+               <span class="s1">abs(bleu - avg_pixels_zincAlu[</span><span class="s4">2</span><span class="s1">])]</span>
+
+    <span class="s1">result_indice = [sum(Is_Beton)</span><span class="s2">, </span><span class="s1">sum(Is_tuiles)</span><span class="s2">, </span><span class="s1">sum(Is_Ardoises)</span><span class="s2">, </span><span class="s1">sum(Is_Zinc)]</span>
+    <span class="s1">result_name = [</span><span class="s3">&quot;Beton&quot;</span><span class="s2">, </span><span class="s3">&quot;Tuiles&quot;</span><span class="s2">, </span><span class="s3">&quot;Ardoises&quot;</span><span class="s2">, </span><span class="s3">&quot;Zinc Aluminium&quot;</span><span class="s1">]</span>
+
+    <span class="s2">return </span><span class="s1">result_name[np.argmin(result_indice)]</span>
+<span class="s0">#%% md 
+</span><span class="s1">Prédiction du type de toît de l'image à prédire de manière statistique. 
+</span><span class="s0">#%% 
+</span></pre>
+</body>
+</html>

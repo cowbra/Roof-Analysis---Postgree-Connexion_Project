@@ -145,7 +145,7 @@ def score(test_dataset,avg):
     print("Validation en cours")
     for image in test_dataset:
         # Image test = (ID,type,lien)
-        identified_as = Type_de_toit_predit(image[2],avg)
+        identified_as = Type_de_toit_prediIDt(image[2],avg)
         # On modifie la matrice de confusion en fonction du resultat
         # On classe de cette maniere : beton,tuiles,ardoises,zinc
         x,y = classes.index(image[1]),classes.index(identified_as)
