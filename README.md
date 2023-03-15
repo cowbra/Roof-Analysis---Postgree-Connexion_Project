@@ -8,7 +8,7 @@
 
 1. install the python libraries below
 2. Retrieve the configuration file 'configfile.ini' to connect to the database (caution: check that the file is in the .gitignore)
-
+3. Download and copy [this folder](https://nextcloud.hugo-sanchez.fr/s/58jtAPpBHNp95qz) into the `ressources` folder (for the images)
 ## 🗒 How it works
 
 1. Install python libraries with `pip`
@@ -43,7 +43,7 @@
    # This library allows us to have information about the execution time of our code
    import time
     ```
-2. We now need to retrieve the credentials to connect to the Postgre database
+2. We now need to retrieve the credentials to connect to the PostgreSQL database
    > These can be found in the `configfile.ini` file
    > Here is how to read this configuration file in python :   
    ``` python
