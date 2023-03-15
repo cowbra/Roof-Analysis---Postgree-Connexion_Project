@@ -30,24 +30,24 @@ conn = psycopg2.connect(
     port="5432"
 )
 
-# Open the CSV file and iterate over each row
 with open('./ressources/batiments_all.csv', newline='') as csvfile:
     reader = csv.DictReader(csvfile, delimiter=';', fieldnames=['id', 'lien_api_infra'])
-    updates = []
+    i = 0  # counter for number of updates
     for row in reader:
-        # Append the tuple with new value and id to the updates list
-        updates.append((row['lien_api_infra'], row['id']))
-        if len(updates) == 50000:
-            # Execute the batch update query
-            execute_batch(cur, "UPDATE public.batiments SET lien_api_infra = %s WHERE id = %s", updates)
+        # Update the 'lien_api_infra' column for the corresponding 'id'
+        cur = conn.cursor()
+        cur.execute(
+            "UPDATE public.batiments SET lien_api_infra = %s WHERE id = %s",
+            (row['lien_api_infra'], row['id'])
+        )
+        cur.close()
+        i += 1
+        if i % 50000 == 0:
             conn.commit()
-            print(f"Committed {len(updates)} updates")
-            # Clear the updates list
-            updates = []
-    # Execute any remaining updates
-    execute_batch(cur, "UPDATE public.batiments SET lien_api_infra = %s WHERE id = %s", updates)
+            print(f"Committed {i} updates")
+    # Commit any remaining updates
     conn.commit()
-    print(f"Committed {len(updates)} updates")
+    print(f"Committed {i} updates")
 
 # Close the database connection
 conn.close()
